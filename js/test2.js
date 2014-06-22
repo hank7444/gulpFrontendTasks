@@ -1,0 +1,10 @@
+var a = 1234;
+bb = 1112;
+var cc = 1234;
+var hh = 'aaaaa';
+var dd = 'aaaaaa112312323a111';
+var bbb = 11;
+var cc = 123;
+var dddd = 1111;
+console.log('1234555 AAA');
+//alert('123');

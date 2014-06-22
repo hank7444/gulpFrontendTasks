@@ -1,0 +1,23 @@
+{
+    "engines": {
+        "node": ">= 0.10.0"
+    },
+    "bin": {
+		"gulp": "./bin/gulp.js"
+  	},
+    "dependencies": {
+        "gulp": "*",
+        "gulp-util": "*",
+        "gulp-watch": "*",
+        "gulp-filter": "*",
+        "browser-sync": "*",
+        "gulp-jshint": "*",
+        "jshint-stylish": "*",
+        "gulp-beautify": "*",
+        "gulp-w3cjs": "*",
+        "gulp-prettify": "*",
+        "gulp-csslint": "*",
+        "gulp-cssbeautify": "*",
+        "gulp-compass": "*"
+    }
+}

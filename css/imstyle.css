@@ -1,0 +1,33 @@
+.sprites-sprite, .sprites-error, .sprites-success {
+    background-image: url('../img/sprites-sc531ce9878.png');
+    background-repeat: no-repeat;
+}
+
+.sprites-error {
+    background-position: 0 0;
+}
+
+.sprites-success {
+    background-position: 0 -24px;
+}
+
+body {
+    color: brown;
+    font-size: 15px;
+    padding: 10px 10px;
+    margin-left: 10px;
+}
+
+.header {
+    color: yellow;
+}
+
+.content {
+    color: pink;
+    margin: 100px;
+}
+
+.footer {
+    color: red;
+    margin: 10px;
+}
