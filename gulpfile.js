@@ -4,6 +4,7 @@ var watch = require('gulp-watch');
 var filter = require('gulp-filter');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
+var plumber = require('gulp-plumber');
 
 // js
 var jsbeautify = require('gulp-beautify');
@@ -122,6 +123,7 @@ gulp.task('compass', function() {
             'emit': 'all',
             'glob': filefolder.sass
         }))
+        .pipe(plumber())
         .pipe(filter(watchStatus.isNotDeleted))
         .pipe(compass({
             config_file: './config.rb',
