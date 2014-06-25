@@ -28,15 +28,21 @@ gulpFrontendTasks
 例如: 
 
 ```
-// 使用者建立了html/test.html, 按儲存
+// 使用者建立了 html/test.html, 按儲存
 // 系統產生 test/html/test.html // 測試顯示頁
 // 系統產生 test/html/script/html.js // 測試碼
 
 ```
 
-`單元測試(尚未實作)`: 
+`單元測試`: 
+需手動建立單元測試的js在test/js/script/目錄下, 當儲存該目錄下的js檔案時, 系統會自動產生相同名稱的.html檔案在test/js/下, 並自動引入測試所需要的js函式庫. 如果test/js/下相對應的html已經存在, 則系統不會覆蓋原有檔案.
 	
-	
+例如:
+
+```
+// 使用者建立了test/js/script/test.js, 按儲存
+// 系統產生 test/js/test.html // 測試顯示頁
+```
 	
 ##Usage
 

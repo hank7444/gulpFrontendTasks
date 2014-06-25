@@ -41,7 +41,8 @@ var filefolder = {
             'script': 'test/html/script/*.js'
         },
         'js': {
-
+            'html': 'test/js/*.html',
+            'script': 'test/js/script/**/*.js'
         }
     }
 };
@@ -159,10 +160,25 @@ gulp.task('compass', function() {
         }));
 });
 
+gulp.task('browser-sync', function() {
+    browserSync.init(null, {
+        server: {
+            baseDir: './',
+            directory: true
+        },
+        debugInfo: false,
+        open: false,
+        browser: ["google chrome", "firefox"],
+        injectChanges: true,
+        notify: true
+    });
+});
 
 
 
 
+
+// ============ 測試部分的task都在這裡 ==============
 
 // 測試用libs
 var getTestLibAry = {
@@ -185,56 +201,106 @@ var getPathName = function(filepath) {
 var destTestJs = function(name, testType) {
     fs.exists('test/' + testType + '/script/' + name + '.js', function(exists) {
 
-        if (!exists) {
-            gulp.src('./test/default.js')
-                .pipe(rename(function(path) {
-                    path.dirname = testType + '/script';
-                    path.basename = name;
-                    path.extname = ".js"
+        if (exists) {
+            return false
+        }
+        gulp.src('./test/default.js')
+            .pipe(rename(function(path) {
+                path.dirname = testType + '/script';
+                path.basename = name;
+                path.extname = ".js"
 
+            }))
+            .pipe(gulp.dest("./test"))
+            .pipe(reload({
+                stream: true
+            }));
+    });
+};
+
+
+var createTestHtmlHash = {
+    'html': function(name, filepath, testType) {
+
+        gulp.src(filepath)
+            .pipe(htmlbuild({
+                // add a header with this target
+                html: function(block) {
+                    block.end('<div id="mocha"></div>');
+                },
+                css: function(block) {
+                    var cssLibAry = getTestLibAry.css;
+
+                    es.readArray(cssLibAry.map(function(str) {
+                        return '<link rel="stylesheet" href="' + str + '">';
+                    })).pipe(block);
+                },
+                js: function(block) {
+
+                    var jsLibAry = getTestLibAry.js.slice(0);
+
+                    if (name) {
+                        jsLibAry.push('/test/' + testType + '/script/' + name + '.js');
+                    }
+
+                    es.readArray(jsLibAry.map(function(str) {
+                        return '<script src="' + str + '"></script>';
+                    })).pipe(block);
+                },
+            }))
+            .pipe(gulp.dest('./test/' + testType))
+            .pipe(reload({
+                stream: true
+            }));
+    },
+    'js': function(name, filepath, testType) {
+
+        var htmlPath = 'test/' + testType + '/' + name + '.html';
+
+        fs.exists(htmlPath, function(exists) {
+
+            if (exists) {
+                return false;
+            }
+            gulp.src('./test/default.html')
+                .pipe(rename(function(path) {
+                    path.dirname = testType;
+                    path.basename = name;
+                    path.extname = ".html"
+
+                }))
+                .pipe(htmlbuild({
+                    js: function(block) {
+
+                        var jsLibAry = getTestLibAry.js.slice(0);
+
+                        if (name) {
+                            jsLibAry.push('/test/' + testType + '/script/' + name + '.js');
+                        }
+
+                        es.readArray(jsLibAry.map(function(str) {
+                            return '<script src="' + str + '"></script>';
+                        })).pipe(block);
+                    },
                 }))
                 .pipe(gulp.dest("./test"))
                 .pipe(reload({
                     stream: true
                 }));
-        }
-    });
+        });
+    }
 };
+
 var destTestHtml = function(name, filepath, testType) {
-    gulp.src(filepath)
-        .pipe(htmlbuild({
-            // add a header with this target
-            html: function(block) {
-                block.end('<div id="mocha"></div>');
-            },
-            css: function(block) {
-                var cssLibAry = getTestLibAry.css;
-
-                es.readArray(cssLibAry.map(function(str) {
-                    return '<link rel="stylesheet" href="' + str + '">';
-                })).pipe(block);
-            },
-            js: function(block) {
-
-                var jsLibAry = getTestLibAry.js.slice(0);
-
-                if (name) {
-                    jsLibAry.push('/test/' + testType + '/script/' + name + '.js');
-                }
-
-                es.readArray(jsLibAry.map(function(str) {
-                    return '<script src="' + str + '"></script>';
-                })).pipe(block);
-            },
-        }))
-        .pipe(gulp.dest('./test/' + testType))
-        .pipe(reload({
-            stream: true
-        }));
+    createTestHtmlHash[testType](name, filepath, testType);
 };
 
 
-gulp.task('test-html-mocha', function() {
+
+var destDefaultHtml
+
+
+gulp.task('test-html', function() {
 
     var testType = 'html';
 
@@ -254,7 +320,7 @@ gulp.task('test-html-mocha', function() {
                 destTestHtml(name, file.path, testType);
             }))
         }))
-        .pipe(filter(watchStatus.isNotDeleted))
+        .pipe(filter(watchStatus.isNotDeleted));
 
     // 將測試js綁定watch   
     gulp.src(filefolder.test.html.script)
@@ -262,23 +328,48 @@ gulp.task('test-html-mocha', function() {
             'emit': 'one',
             'glob': filefolder.test.html.script
         }))
+        .pipe(filter(watchStatus.isNotDeleted))
         .pipe(reload({
             stream: true
         }));
 });
 
-gulp.task('browser-sync', function() {
-    browserSync.init(null, {
-        server: {
-            baseDir: './',
-            directory: true
-        },
-        debugInfo: false,
-        open: false,
-        browser: ["google chrome", "firefox"],
-        injectChanges: true,
-        notify: true
-    });
+gulp.task('test-js', function() {
+
+    var testType = 'js';
+
+    // 監聽js/script檔案, 產生對應的測試用html
+    // html會自動加上測試用的lib與測試用的js
+    // html如果已存在則不覆蓋(避免使用者新增的部分被覆蓋掉)
+    gulp.src(filefolder.test.js.script)
+        .pipe(watch({
+            'emit': 'one',
+            'glob': filefolder.test.js.script
+        }, function(files) {
+
+            files.pipe(tap(function(file, t) {
+
+                var name = getPathName(file.path);
+                gutil.log('name:    ' + name);
+                destTestHtml(name, file.path, testType);
+            }))
+        }))
+        .pipe(filter(watchStatus.isNotDeleted))
+        .pipe(reload({
+            stream: true
+        }));
+
+
+    // 將測試html綁定watch   
+    gulp.src(filefolder.test.js.html)
+        .pipe(watch({
+            'emit': 'one',
+            'glob': filefolder.test.js.html
+        }))
+        .pipe(filter(watchStatus.isNotDeleted))
+        .pipe(reload({
+            stream: true
+        }));
 });
 
 gulp.task('js', ['js-beautify', 'js-hint']);
@@ -287,4 +378,4 @@ gulp.task('css', ['css-beautify', 'css-hint']);
 gulp.task('sass', ['compass']);
 gulp.task('default', ['js', 'html', 'css', 'sass']);
 gulp.task('livereload', ['browser-sync', 'default']);
-gulp.task('test', ['browser-sync', 'test-html-mocha', 'default']);
+gulp.task('test', ['browser-sync', 'test-js', 'test-html', 'default']);
