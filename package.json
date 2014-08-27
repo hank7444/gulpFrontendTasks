@@ -24,6 +24,7 @@
         "event-stream": "*",
         "gulp-tap": "*",
         "gulp-rename": "*",
-        "path": "*",
+        "gulp-coffee": "*",
+        "path": "*"
     }
 }

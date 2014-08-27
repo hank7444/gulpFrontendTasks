@@ -22,6 +22,9 @@ var csshint = require('gulp-csslint');
 // sass/scss
 var compass = require('gulp-compass');
 
+// coffee
+var coffee = require('gulp-coffee');
+
 // test
 var htmlbuild = require('gulp-htmlbuild'); // 字串寫入
 var es = require('event-stream');
@@ -35,6 +38,7 @@ var filefolder = {
     'html': 'html/**/*.html',
     'css': 'css/**/*.css',
     'sass': 'sass/**/*.{sass, scss}',
+    'coffee': 'coffee/**/*.coffee',
     'test': {
         'html': {
             'html': 'test/html/*.html',
@@ -87,6 +91,14 @@ gulp.task('js-hint', function() {
         .pipe(filter(watchStatus.isNotDeleted))
         .pipe(jshint())
         .pipe(jshint.reporter('jshint-stylish'));
+});
+
+
+
+gulp.task('coffee', function() {
+    gulp.src(filefolder.coffee)
+        .pipe(coffee({bare: true}).on('error', gutil.log))
+        .pipe(gulp.dest('js'))
 });
 
 
@@ -372,10 +384,11 @@ gulp.task('test-js', function() {
         }));
 });
 
+
 gulp.task('js', ['js-beautify', 'js-hint']);
 gulp.task('html', ['html-beautify', 'html-hint']);
 gulp.task('css', ['css-beautify', 'css-hint']);
 gulp.task('sass', ['compass']);
-gulp.task('default', ['js', 'html', 'css', 'sass']);
+gulp.task('default', ['js', 'html', 'css', 'sass', 'coffee']);
 gulp.task('livereload', ['browser-sync', 'default']);
 gulp.task('test', ['browser-sync', 'test-js', 'test-html', 'default']);
