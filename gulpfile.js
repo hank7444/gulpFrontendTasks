@@ -96,10 +96,20 @@ gulp.task('js-hint', function() {
 
 
 gulp.task('coffee', function() {
+
     gulp.src(filefolder.coffee)
+        .pipe(watch({
+            'emit': 'one',
+            'glob': filefolder.coffee
+        }))
+        .pipe(filter(watchStatus.isNotDeleted))
         .pipe(coffee({bare: true}).on('error', gutil.log))
         .pipe(gulp.dest('js'))
+        .pipe(reload({
+            stream: true
+        }));
 });
+
 
 
 gulp.task('html-beautify', function() {
