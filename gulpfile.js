@@ -102,6 +102,7 @@ gulp.task('coffee', function() {
             'emit': 'one',
             'glob': filefolder.coffee
         }))
+        .pipe(plumber())
         .pipe(filter(watchStatus.isNotDeleted))
         .pipe(coffee({bare: true}).on('error', gutil.log))
         .pipe(gulp.dest('js'))
